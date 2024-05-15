@@ -11,7 +11,7 @@ export default function Start () {
             <View>
                 <Image 
                 source={require('../images/Frame.png')}
-                style={[tw`object-cover`]}
+                style={[tw``]}
                 />
             </View>
             <View>
