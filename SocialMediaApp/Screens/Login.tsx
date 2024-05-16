@@ -41,7 +41,7 @@ export default function Login() {
           </TouchableOpacity>
           </View>
           <View style={[tw`my-5`]}>
-            <Text style={[tw`flex items-center space-x-2 text-lg text-white`]}>Create Your Account. 
+            <Text style={[tw`flex items-center text-lg text-white`]}>Create Your Account. 
             </Text>
             <TouchableOpacity 
              style={[tw``]}

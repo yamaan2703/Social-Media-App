@@ -16,7 +16,8 @@ export default function Start () {
             </View>
             <View>
                 <Text style={[tw`text-white text-2xl py-1 text-center`]}>Welcom to</Text>
-                <Text style={[tw`text-white text-5xl py-1 font-extrabold text-center`]}>WE-HUG</Text>
+                <Text style={[tw`text-white text-5xl py-1 font-extrabold text-center`, { fontFamily: "Salsa-Regular" }]}>WE-HUG</Text>
+
             </View>
             <View>
             <TouchableOpacity onPress={() => navigation.navigate("Login")}>

@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -10,35 +9,62 @@ import User from '../Screens/User';
 import Chats from '../Screens/Chats';
 import Post from '../Screens/Post';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import tw from 'twrnc';
+import { Platform, View } from 'react-native';
+import Explore from '../Screens/Explore';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+const screenOptions = {
+  // activeTintColor: 'white', 
+  // inactiveTintColor: 'rgb(15, 23, 42)', 
+  tabBarShowLabel: false,
+  tabBarStyle: {
+    backgroundColor: "rgb(15, 23, 42)",
+    // color: "white"
+  
+  },
+};
+
 function MainTabNavigator() {
   return (
-    <Tab.Navigator
-      tabBarOptions={{
-        
-        backgroundColor: "gray",
-        activeTintColor: 'pink',
-        inactiveTintColor: 'red',
-        labelStyle: tw`text-red-500 font-bold`, // Text color for tab labels
-      }}
-    >
+    <Tab.Navigator screenOptions={screenOptions}>
       <Tab.Screen 
         name="Home" 
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size }) => <Icon name="home" size={size} style={[tw`text-red-500`, { color }]} />
+          tabBarIcon: ({color}) => <Icon name="home" size={25} color={color}/>,
         }} 
         component={Home} 
       />
       <Tab.Screen 
-        name="Post" 
+        name="Explore" 
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size }) => <Icon name="add" size={size} style={[tw`text-red-500`, { color }]} />
+          tabBarIcon: ({color}) => <Icon name="search" size={25} color={color}/>,
+        }} 
+        component={Explore} 
+      />
+      <Tab.Screen 
+        name="Post" 
+        options={{
+          tabBarIcon: () => (
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#3A6A75",
+                color: "white",
+                width: Platform.OS === "ios" ? 50 : 60,
+                height: Platform.OS === "ios" ? 50 : 60,
+                top: Platform.OS === "ios" ? -10 : -20,
+                borderRadius: 50 
+              }}
+            >
+              <Icon name="add" size={25} color="white" />
+            </View>
+          ),
+          headerShown: false,
         }} 
         component={Post} 
       />
@@ -46,7 +72,7 @@ function MainTabNavigator() {
         name="Chats" 
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size }) => <Icon name="chat" size={size} style={[tw`text-red-500`, { color }]} />
+          tabBarIcon: ({color}) => <Icon name="chat" size={25}  color={color}/>,
         }}  
         component={Chats} 
       />
@@ -54,7 +80,7 @@ function MainTabNavigator() {
         name="User" 
         options={{
           headerShown: false,
-          tabBarIcon: ({ color, size }) => <Icon name="person" size={size} style={[tw`text-red-500`, { color }]} />
+          tabBarIcon: ({color}) => <Icon name="person" size={25} color={color} />,
         }} 
         component={User} 
       />

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1066583246019",
+    "project_id": "react-native-sma",
+    "storage_bucket": "react-native-sma.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1066583246019:android:0e618c98b3564e97974e76",
+        "android_client_info": {
+          "package_name": "com.socialmediaapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDA9cHXy1kFh9bD0yDRrX6L7sxWe74R-2Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
