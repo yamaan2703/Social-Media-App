@@ -1,136 +1,149 @@
-import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
 import tw from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { useState } from 'react';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../Config/FirebaseConfig'; // Adjust the import path as necessary
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
 
 export default function SignUp() {
-  const [error, setError] = useState<any>(null);
-  const [selectedImage, setSelectedImage] = useState<any>(null);
-  const [displayName, setDisplayName] = useState<any>('');
-  const [email, setEmail] = useState<any>('');
-  const [password, setPassword] = useState<any>('');
   const navigation = useNavigation();
+  const [displayName, setDisplayName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [userImg, setUserImg] = useState<any>(null);
 
-  const handleImageChange = (response:any) => {
-    if (response.assets && response.assets.length > 0) {
-      setSelectedImage(response.assets[0]);
+  const handleSignUp = async () => {
+    if (!email || !password || !displayName) {
+      Alert.alert("Please fill in all fields");
+      return;
     }
-  };
 
-  const handleSubmit = async () => {
     try {
-      const res = await createUserWithEmailAndPassword(auth, email, password);
-      
-      const storage = getStorage();
-      const storageRef = ref(storage, `images/${selectedImage.fileName}`);
-      const uploadTask = uploadBytesResumable(storageRef, {
-        uri: selectedImage.uri,
-        type: selectedImage.type,
-        name: selectedImage.fileName,
+      const res = await auth().createUserWithEmailAndPassword(email, password);
+      const userId = res.user.uid;
+      const file = userImg;
+
+      let imageUrl = null;
+      if (file) {
+        const reference = storage().ref(`/images/${userId}`);
+        const task = reference.putFile(file.uri);
+
+        // Monitor the file upload
+        task.on('state_changed', taskSnapshot => {
+          console.log(`${taskSnapshot.bytesTransferred} transferred out of ${taskSnapshot.totalBytes}`);
+        });
+
+        await task;
+
+        imageUrl = await reference.getDownloadURL();
+      }
+
+      await firestore().collection('users').doc(userId).set({
+        displayName: displayName,
+        email: email,
+        imageUrl: imageUrl,
       });
 
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log("Upload is " + progress + "% done");
-        },
-        (error) => {
-          setError(error);
-        },
-        async () => {
-          try {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            await updateProfile(res.user, {
-              displayName,
-              photoURL: downloadURL,
-            });
-            await setDoc(doc(db, "users", res.user.uid), {
-              uid: res.user.uid,
-              photoURL: downloadURL,
-              displayName,
-              email,
-            });
-            // await setDoc(doc(db, "usersChats", res.user.uid), {});
-            navigation.navigate('Home');
-          } catch (error) {
-            setError(error);
-          }
-        }
-      );
-    } catch (error) {
-      setError(error);
+      console.log('User added!');
+      console.log('User account created & signed in!');
+      navigation.navigate('Home');
+    } catch (error: any) {
+      if (error.code === 'auth/email-already-in-use') {
+        console.log('That email address is already in use!');
+      } else if (error.code === 'auth/invalid-email') {
+        console.log('That email address is invalid!');
+      } else {
+        console.error(error);
+      }
     }
   };
 
   const openCamera = () => {
-    launchCamera({ mediaType: 'photo' }, handleImageChange);
+    launchCamera({ mediaType: 'photo' }, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled camera picker');
+      } else if (response.errorCode) {
+        console.log('Camera Error: ', response.errorMessage);
+      } else {
+        setUserImg(response.assets[0]);
+      }
+    });
   };
 
   const openGallery = () => {
-    launchImageLibrary({ mediaType: 'photo' }, handleImageChange);
+    launchImageLibrary({ mediaType: 'photo' }, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled gallery picker');
+      } else if (response.errorCode) {
+        console.log('Gallery Error: ', response.errorMessage);
+      } else {
+        setUserImg(response.assets[0]);
+      }
+    });
   };
 
   return (
     <View style={[tw`bg-slate-900 h-full flex justify-center items-center`]}>
       <View>
-        <Text style={[tw`text-4xl mb-10 font-extrabold text-white`]}>
-          WE-HUG
-        </Text>
+        <Text style={[tw`text-4xl mb-10 font-extrabold text-white`]}>WE-HUG</Text>
       </View>
 
-      <View
-        style={[
-          tw`p-5 bg-[#3A6A75] rounded-xl shadow-2xl shadow-slate-100 w-[300px]`,
-        ]}>
+      <View style={[tw`p-5 bg-[#3A6A75] rounded-xl shadow-2xl shadow-slate-100 w-[300px]`]}>
         <View>
           <Text style={[tw`text-white font-bold text-3xl my-2`]}>SignUp</Text>
         </View>
         <View style={[tw`flex justify-center items-center`]}>
-          <Image
-            source={selectedImage ? { uri: selectedImage.uri } : require('../images/Person.png')}
-            style={[tw`rounded-full w-[70px] h-[70px]`]}
-          />
+          {userImg ? (
+            <Image
+              source={{ uri: userImg.uri }}
+              style={[tw`rounded-full w-[70px] h-[70px]`]}
+            />
+          ) : (
+            <Image
+              source={require('../images/Person.png')}
+              style={[tw`rounded-full w-[70px] h-[70px]`]}
+            />
+          )}
           <TouchableOpacity onPress={openGallery}>
             <Text style={[tw`text-white py-2`]}>Upload Image</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={openCamera}>
+            <Text style={[tw`text-white py-2`]}>Take Photo</Text>
           </TouchableOpacity>
         </View>
         <View>
           <TextInput
             placeholder="Enter User Name"
+            style={[tw`border-b text-white border-white`]}
             value={displayName}
             onChangeText={setDisplayName}
-            style={[tw`border-b text-white border-white`]}
+            placeholderTextColor="gray"
           />
         </View>
         <View>
           <TextInput
             placeholder="Enter Email"
+            style={[tw`border-b text-white border-white`]}
             value={email}
             onChangeText={setEmail}
-            style={[tw`border-b text-white border-white`]}
+            placeholderTextColor="gray"
           />
         </View>
         <View>
           <TextInput
             placeholder="Enter Password"
-            value={password}
-            onChangeText={setPassword}
             secureTextEntry
             style={[tw`border-b text-white border-white`]}
+            value={password}
+            onChangeText={setPassword}
+            placeholderTextColor="gray"
           />
         </View>
         <View>
-          <TouchableOpacity onPress={handleSubmit}>
-            <Text
-              style={[
-                tw`bg-slate-900 text-white text-center text-xl rounded-3xl p-2 w-[150px] mx-auto mt-10`,
-              ]}>
+          <TouchableOpacity onPress={handleSignUp}>
+            <Text style={[tw`bg-slate-900 text-white text-center text-xl rounded-3xl p-2 w-[150px] mx-auto mt-10`]}>
               SignUp
             </Text>
           </TouchableOpacity>
@@ -140,7 +153,7 @@ export default function SignUp() {
             I already have an account.
           </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={[tw`text-lg text-slate-900 font-bold `]}>Login</Text>
+            <Text style={[tw`text-lg text-slate-900 font-bold`]}>Login</Text>
           </TouchableOpacity>
         </View>
       </View>

@@ -1,18 +1,17 @@
-import { onAuthStateChanged } from "firebase/auth";
-import { createContext, useEffect, useState } from "react";
-import { auth } from "./FirebaseConfig";
+import React, { createContext, useEffect, useState } from "react";
+import auth from '@react-native-firebase/auth';
 
-export const AuthContext = createContext<any>("");
 
-export const AuthContextProvider = ({ children }: any) => {
-    const [currentUser, setCurrentUser] = useState<any>(null);
+export const AuthContext = createContext(null);
+
+export const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
+    const [currentUser, setCurrentUser] = useState(null);
 
     useEffect(() => {
-        const unsub = onAuthStateChanged(auth, (user:any) => {
+        const unSub = auth().onAuthStateChanged((user: any) => {
             setCurrentUser(user);
-            console.log(user);
         });
-        return () => unsub();
+        return () => unSub();
     }, []);
 
     return (

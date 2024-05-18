@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "545070862636",
+    "project_id": "social-media-app-react-n-e3397",
+    "storage_bucket": "social-media-app-react-n-e3397.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:545070862636:android:2cebbe3c6a3d93e34a9c89",
+        "android_client_info": {
+          "package_name": "com.socialmediaapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1Vrrfbr-FSJ4F_j-w1DPzr7VwRicQeu4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

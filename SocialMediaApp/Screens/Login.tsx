@@ -2,23 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import tw from 'twrnc';
 import { useNavigation } from "@react-navigation/native";
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../Config/FirebaseConfig'; // Adjust the import path as necessary
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [err, setErr] = useState(false);
-  const navigation = useNavigation();
-
-  const handleSubmit = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigation.navigate("Home");
-    } catch (error) {
-      setErr(true);
-    }
-  };
+  const navigation = useNavigation()
+  
 
   return (
     <View style={[tw`bg-slate-900 h-full flex justify-center items-center`]}>
@@ -34,8 +21,6 @@ export default function Login() {
         <View>
           <TextInput
             placeholder="Enter Email"
-            value={email}
-            onChangeText={setEmail}
             style={[tw`border-b text-white border-white`]}
             placeholderTextColor="rgba(255, 255, 255, 0.6)"
           />
@@ -43,16 +28,12 @@ export default function Login() {
         <View>
           <TextInput
             placeholder="Enter Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
             style={[tw`border-b text-white border-white`]}
             placeholderTextColor="rgba(255, 255, 255, 0.6)"
           />
         </View>
-        {err && <Text style={[tw`text-red-500`]}>Invalid email or password</Text>}
         <View>
-          <TouchableOpacity onPress={handleSubmit}>
+          <TouchableOpacity>
             <Text
               style={[
                 tw`bg-slate-900 text-white text-center text-xl rounded-3xl p-2 w-[150px] mx-auto mt-10`,
