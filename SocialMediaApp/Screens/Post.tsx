@@ -6,15 +6,15 @@ import { useNavigation } from '@react-navigation/native';
 import tw from 'twrnc';
 import storage from '@react-native-firebase/storage';
 import firestore from '@react-native-firebase/firestore';
-import { utils } from '@react-native-firebase/app';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Post() {
   const navigation = useNavigation();
-  const [imageUri, setImageUri] = useState(null);
-  const [caption, setCaption] = useState('');
+  const [imageUri, setImageUri] = useState<any>(null);
+  const [caption, setCaption] = useState<string>("");
 
   const openCamera = () => {
-    launchCamera({ mediaType: 'photo' }, (response:any) => {
+    launchCamera({ mediaType: 'photo' }, (response: any) => {
       if (response.didCancel) {
         console.log('User cancelled camera picker');
       } else if (response.errorCode) {
@@ -26,7 +26,7 @@ export default function Post() {
   };
 
   const openGallery = () => {
-    launchImageLibrary({ mediaType: 'photo' }, (response:any) => {
+    launchImageLibrary({ mediaType: 'photo' }, (response: any) => {
       if (response.didCancel) {
         console.log('User cancelled gallery picker');
       } else if (response.errorCode) {
@@ -49,16 +49,24 @@ export default function Post() {
       await reference.putFile(imageUri);
       const imageUrl = await reference.getDownloadURL();
 
-     
-      await firestore().collection('posts').add({
+      const newPost = {
         caption,
         imageUrl,
         createdAt: firestore.FieldValue.serverTimestamp(),
-      });
+      };
+
+      // Save post to Firestore
+      await firestore().collection('posts').add(newPost);
+
+      // Save post to AsyncStorage
+      const storedPosts = await AsyncStorage.getItem('userPosts');
+      const posts = storedPosts ? JSON.parse(storedPosts) : [];
+      posts.push(newPost);
+      await AsyncStorage.setItem('userPosts', JSON.stringify(posts));
 
       Alert.alert('Post uploaded successfully');
       navigation.navigate('Home');
-    } catch (error:any) {
+    } catch (error: any) {
       console.error('Error uploading image: ', error);
       Alert.alert('Error uploading image', error.message);
     }
