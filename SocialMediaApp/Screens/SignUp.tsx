@@ -166,6 +166,7 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import uuid from 'react-native-uuid';
 
 export default function SignUp() {
   const navigation = useNavigation();
@@ -196,10 +197,12 @@ export default function SignUp() {
         displayName: displayName,
         email: email,
         userImg: imageUrl,
+        userId: uuid.v4(),
       };
 
       await firestore().collection('users').doc(userId).set(userData);
       await AsyncStorage.setItem('userData', JSON.stringify(userData));
+      await AsyncStorage.setItem('userId', JSON.stringify(userId));
 
       console.log('User added!');
       console.log('User account created & signed in!');

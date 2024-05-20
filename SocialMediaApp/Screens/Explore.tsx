@@ -134,7 +134,7 @@ import firestore from '@react-native-firebase/firestore';
 export default function Explore() {
   const [users, setUsers] = useState<any>([]);
   const [searchQuery, setSearchQuery] = useState<any>('');
-  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<any>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -146,6 +146,7 @@ export default function Explore() {
 
     fetchUsers();
   }, []);
+  
 
   useEffect(() => {
     if (searchQuery) {
@@ -186,7 +187,7 @@ export default function Explore() {
 
       <ScrollView>
         <View style={tw`p-5 flex flex-wrap flex-row justify-between`}>
-          {filteredUsers.map((user, index) => (
+          {filteredUsers.map((user:any, index:any) => (
             <TouchableOpacity
               key={index}
               style={tw`w-[48%] bg-[#3A6A75] py-5 px-2 rounded-2xl shadow-xl shadow-white mb-4`}

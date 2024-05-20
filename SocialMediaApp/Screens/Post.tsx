@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -6,11 +6,14 @@ import { useNavigation } from '@react-navigation/native';
 import tw from 'twrnc';
 import storage from '@react-native-firebase/storage';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// import { PermissionsAndroid } from 'react-native';
+import uuid from 'react-native-uuid';
 
 export default function Post() {
   const navigation = useNavigation();
-  const [imageUri, setImageUri] = useState<any>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [caption, setCaption] = useState<string>("");
 
   const openCamera = () => {
@@ -43,22 +46,40 @@ export default function Post() {
       return;
     }
 
+    const currentUser = auth().currentUser;
+    if (!currentUser) {
+      Alert.alert('No user is logged in');
+      return;
+    }
+
     try {
       const fileName = imageUri.substring(imageUri.lastIndexOf('/') + 1);
       const reference = storage().ref(`/images/${fileName}`);
       await reference.putFile(imageUri);
       const imageUrl = await reference.getDownloadURL();
-
+      let id:any = uuid.v4()
+      const userId =  await AsyncStorage.getItem("userId")
+      
       const newPost = {
+        displayName: currentUser.displayName,
+        email: currentUser.email,
         caption,
         imageUrl,
-        createdAt: firestore.FieldValue.serverTimestamp(),
+        reatedAt: firestore.FieldValue.serverTimestamp(),
+        postId: id,
+        userId: userId,
+        likes: [],
+        comment: [],
       };
+      console.log(newPost);
+      
+      console.log(currentUser.displayName);
 
+      
       // Save post to Firestore
-      await firestore().collection('posts').add(newPost);
+      await firestore().collection('posts').doc(id).set(newPost);
 
-      // Save post to AsyncStorage
+      // Optionally save post to AsyncStorage
       const storedPosts = await AsyncStorage.getItem('userPosts');
       const posts = storedPosts ? JSON.parse(storedPosts) : [];
       posts.push(newPost);

@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import tw from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Login() {
   const navigation = useNavigation();
@@ -16,11 +17,15 @@ export default function Login() {
     }
 
     try {
-      await auth().signInWithEmailAndPassword(email, password);
-      setEmail(''); 
-      setPassword(''); 
+      const userCredential = await auth().signInWithEmailAndPassword(email, password);
+      const userId = userCredential.user.uid;
+      
+      setEmail('');
+      setPassword('');
+
+      await AsyncStorage.setItem('userId', userId);
       navigation.navigate('Home');
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert('Error', error.message);
     }
   };
