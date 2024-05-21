@@ -44,7 +44,7 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  const handleLike = async (postId: string) => {
+  const handleLike = async (postId: any) => {
     const postRef = firestore().collection('posts').doc(postId);
     try {
       const doc = await postRef.get();
@@ -78,10 +78,10 @@ export default function Home() {
 
       <ScrollView>
         <View style={tw`p-3`}>
-          {posts.map(post => (
+          {posts.map((post:any) => (
             <View
               key={post.id}
-              style={tw`card rounded-md shadow-md shadow-white p-3 my-2`}>
+              style={tw`card rounded-md shadow shadow-white p-3 my-2`}>
               <View style={tw`flex-row items-center justify-between`}>
                 <View style={tw`flex-row items-center`}>
                   <View style={tw`pr-2`}>
@@ -119,7 +119,7 @@ export default function Home() {
                       name="thumb-up"
                       size={25}
                       style={tw`${
-                        isLiked(post.likes) ? 'text-red-500' : 'text-white'
+                        isLiked(post.likes) ? 'text-blue-700' : 'text-white'
                       }`}
                     />
                   </TouchableOpacity>
@@ -127,7 +127,10 @@ export default function Home() {
                 <View>
                   <TouchableOpacity
                     onPress={() =>
-                      navigation.navigate('Comments', {postId: post.id})
+                      navigation.navigate('Comments', {
+                        postId: post.id,
+                        comments: post.comments,
+                      })
                     }>
                     <Icon
                       name="mode-comment"

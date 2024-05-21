@@ -69,7 +69,7 @@ export default function Post() {
         postId: id,
         userId: userId,
         likes: [],
-        comment: [],
+        comments: [],
       };
       console.log(newPost);
       

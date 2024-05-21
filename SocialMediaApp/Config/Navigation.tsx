@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Platform, View } from 'react-native';
 import Explore from '../Screens/Explore';
 import Comments from '../Screens/Comments';
+import EditProfile from '../Screens/EditProfile';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -116,6 +117,11 @@ function Navigation() {
         <Stack.Screen
           name="Comments"
           component={Comments}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="EditProfile"
+          component={EditProfile}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
