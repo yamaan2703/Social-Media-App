@@ -100,19 +100,14 @@ export default function Login() {
       const user = userCredential.user;
 
       const userId = user.uid;
-      const userName = user.displayName || "";  
-      const profilePics = user.photoURL || "";  
 
-      
       setEmail('');
       setPassword('');
 
-    
       await AsyncStorage.setItem('userId', userId);
-      await AsyncStorage.setItem('userName', userName);
-      await AsyncStorage.setItem('profile_pics', profilePics);
+      // await AsyncStorage.setItem('userName', userName);
+      // await AsyncStorage.setItem('profile_pics', profilePics);
 
-      // Navigate to Home screen
       navigation.navigate('Home');
     } catch (error:any) {
       Alert.alert('Error', error.message);

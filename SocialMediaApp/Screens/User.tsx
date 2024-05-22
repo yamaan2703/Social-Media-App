@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Alert,
   Image,
@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import tw from 'twrnc';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,12 +23,11 @@ export default function User() {
       try {
         const currentUser = auth().currentUser;
         const userId = await AsyncStorage.getItem('userId');
-
-        if (currentUser && userId) {
-          const userDoc = await firestore()
-            .collection('users')
-            .doc(userId)
-            .get();
+        const userData = await AsyncStorage.getItem('userData');
+        
+        if (currentUser && userId && userData) {
+          const userDoc = await firestore().collection('users').doc(userId).get();
+          
           if (userDoc.exists) {
             setUserData(userDoc.data());
           } else {
@@ -45,22 +44,21 @@ export default function User() {
     getUserData();
   }, []);
 
-  const handleLogout = () => {
-    auth()
-      .signOut()
-      .then(() => {
-        console.log('User signed out!');
-        navigation.navigate('Login');
-      })
-      .catch(error => {
-        console.error('Error signing out: ', error);
-        Alert.alert('Error signing out', error.message);
-      });
+  const handleLogout = async () => {
+    try {
+      await auth().signOut();
+      // await AsyncStorage.removeItem('userId');
+      console.log('User signed out!');
+      navigation.navigate('Login');
+    } catch (error: any) {
+      console.error('Error signing out: ', error);
+      Alert.alert('Error signing out', error.message);
+    }
   };
 
   const handleEditPage = () => {
-    navigation.navigate("EditProfile")
-  }
+    navigation.navigate('EditProfile');
+  };
 
   if (loading) {
     return (
@@ -81,7 +79,7 @@ export default function User() {
           <View style={tw`flex justify-center items-center`}>
             {userData && userData.userImg ? (
               <Image
-                source={{uri: userData.userImg}}
+                source={{ uri: userData.userImg }}
                 style={tw`rounded-full w-[100px] h-[100px]`}
               />
             ) : (
@@ -100,31 +98,30 @@ export default function User() {
             </Text>
           </View>
           <View style={tw`flex-row justify-center items-center`}>
-            
             <TouchableOpacity
               style={tw`mx-auto`}
-              onPress={handleEditPage}>
+              onPress={handleEditPage}
+            >
               <Text
-                style={tw`bg-[#3A6A75] text-white text-center text-xl rounded-3xl p-1 w-[150px] mt-2`}>
+                style={tw`bg-[#3A6A75] text-white text-center text-xl rounded-3xl p-1 w-[150px] mt-2`}
+              >
                 Edit Profile
               </Text>
             </TouchableOpacity>
-                 
 
-            <TouchableOpacity style={tw`mx-auto`} onPress={handleLogout}>
+            <TouchableOpacity
+              style={tw`mx-auto`}
+              onPress={handleLogout}
+            >
               <Text
-                style={tw`bg-[#3A6A75] text-white text-center text-xl rounded-3xl p-1 w-[150px] mt-2`}>
+                style={tw`bg-[#3A6A75] text-white text-center text-xl rounded-3xl p-1 w-[150px] mt-2`}
+              >
                 Logout
               </Text>
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* <TouchableOpacity onPress={}>
-
-        </TouchableOpacity> */}
       </ScrollView>
     </View>
   );
 }
-

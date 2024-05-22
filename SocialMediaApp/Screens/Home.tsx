@@ -1,39 +1,64 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, Image, TouchableOpacity, ScrollView} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import tw from 'twrnc';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import firestore from '@react-native-firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+
+interface Post {
+  id: string;
+  userImg: string | null;
+  displayName: string;
+  email:string;
+  imageUrl: string;
+  caption: string;
+  likes: string[];
+  comments: string[];
+}
 
 export default function Home() {
-  const [posts, setPosts] = useState<any[]>([]);
-  const [userId, setUserId] = useState<string>('');
+  const [posts, setPosts] = useState<any>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userData, setUserData] = useState<string | null>(null);
   const navigation = useNavigation();
 
   useEffect(() => {
     const fetchUserId = async () => {
-      const id = await AsyncStorage.getItem('userId');
-      if (id) {
-        setUserId(id);
+      try {
+        const id = await AsyncStorage.getItem('userId');
+        const userGetData = await AsyncStorage.getItem('userData');
+        console.log("user Data ++++++++", userGetData);
+        
+        if (id && userGetData) {
+          setUserId(id);
+          setUserData(userGetData)
+          console.log("setUserData =============" , setUserData);
+          
+        }
+      } catch (error) {
+        console.error('Error fetching user ID:', error);
       }
     };
 
     fetchUserId();
   }, []);
 
+  // AsyncStorage.getItem("userName").then((res)=>{console.log(res)})
   useEffect(() => {
     const unsubscribe = firestore()
       .collection('posts')
       .onSnapshot(
         querySnapshot => {
-          const postList: any[] = [];
+          const postList:any = [];
           querySnapshot.forEach(documentSnapshot => {
+            // console.log(documentSnapshot.data(), "documentSnapshot")
             postList.push({
               ...documentSnapshot.data(),
               id: documentSnapshot.id,
-            });
+            } as Post);
           });
+          // console.log("data Base : " ,  postList)
           setPosts(postList);
         },
         error => {
@@ -44,12 +69,14 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  const handleLike = async (postId: any) => {
+  const handleLike = async (postId: string) => {
+    if (!userId) return;
+
     const postRef = firestore().collection('posts').doc(postId);
     try {
       const doc = await postRef.get();
       if (doc.exists) {
-        const postData = doc.data();
+        const postData = doc.data() as Post;
         let likes = postData?.likes || [];
 
         if (likes.includes(userId)) {
@@ -58,9 +85,9 @@ export default function Home() {
           likes.push(userId);
         }
 
-        await postRef.update({likes});
+        await postRef.update({ likes });
         setPosts(prevPosts =>
-          prevPosts.map(post => (post.id === postId ? {...post, likes} : post)),
+          prevPosts.map(post => (post.id === postId ? { ...post, likes } : post)),
         );
       }
     } catch (error) {
@@ -68,7 +95,7 @@ export default function Home() {
     }
   };
 
-  const isLiked = (likes: string[] = []) => likes.includes(userId);
+  const isLiked = (likes: string[] = []) => userId && likes.includes(userId);
 
   return (
     <View style={tw`bg-slate-900 h-full`}>
@@ -78,7 +105,9 @@ export default function Home() {
 
       <ScrollView>
         <View style={tw`p-3`}>
-          {posts.map((post:any) => (
+          {posts.map(post =>{
+            // console.log(post)
+          return (
             <View
               key={post.id}
               style={tw`card rounded-md shadow shadow-white p-3 my-2`}>
@@ -86,12 +115,12 @@ export default function Home() {
                 <View style={tw`flex-row items-center`}>
                   <View style={tw`pr-2`}>
                     <Image
-                      source={require('../images/Person.png')}
+                      source={post.userImg ? { uri: post.userImg } : require('../images/Person.png')}
                       style={tw`rounded-full w-[30px] h-[30px]`}
                     />
                   </View>
                   <View>
-                    <Text style={tw`text-white`}>{post.email}</Text>
+                    <Text style={tw`text-white`}>{post.displayName}</Text>
                   </View>
                 </View>
                 <View>
@@ -101,8 +130,8 @@ export default function Home() {
 
               <View style={tw`h-[200px] my-3`}>
                 <Image
-                  source={{uri: post.imageUrl}}
-                  style={[tw`rounded`, {width: '100%', height: '100%'}]}
+                  source={{ uri: post.imageUrl }}
+                  style={[tw`rounded`, { width: '100%', height: '100%' }]}
                 />
               </View>
 
@@ -118,9 +147,7 @@ export default function Home() {
                     <Icon
                       name="thumb-up"
                       size={25}
-                      style={tw`${
-                        isLiked(post.likes) ? 'text-blue-700' : 'text-white'
-                      }`}
+                      style={tw`${isLiked(post.likes) ? 'text-blue-700' : 'text-white'}`}
                     />
                   </TouchableOpacity>
                 </View>
@@ -141,7 +168,7 @@ export default function Home() {
                 </View>
               </View>
             </View>
-          ))}
+          )})}
         </View>
       </ScrollView>
     </View>

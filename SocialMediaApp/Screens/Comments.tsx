@@ -134,7 +134,6 @@ export default function Comments() {
           setUserId(id);
           setUserName(name);
           setProfilePics(profilePics);
-    
         }
       } catch (error) {
         console.error('Error fetching user data: ', error);
@@ -164,7 +163,7 @@ export default function Comments() {
       const newComment = {
         userId,
         userName,
-        // userImg: { uri: profilePics },
+        userImg: { uri: profilePics },
         text: comment.trim(),
         timestamp: new Date(),
       };
