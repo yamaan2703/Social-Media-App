@@ -83,9 +83,10 @@ import tw from 'twrnc';
 import { useNavigation } from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import firestore from '@react-native-firebase/firestore';
 
 export default function Login() {
-  const navigation = useNavigation();
+  const navigation :any = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -97,18 +98,23 @@ export default function Login() {
 
     try {
       const userCredential = await auth().signInWithEmailAndPassword(email, password);
-      const user = userCredential.user;
+      const LoginUser = userCredential.user;
+      let userId = LoginUser.uid
 
-      const userId = user.uid;
-
+      
       setEmail('');
       setPassword('');
+      
+      let userData:any = await firestore().collection('users').doc(userId).get()
+      userData = userData._data
+      console.log(userData ,  "userData")
+      console.log(LoginUser ,  "LoginUser")
 
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
       await AsyncStorage.setItem('userId', userId);
-      // await AsyncStorage.setItem('userName', userName);
-      // await AsyncStorage.setItem('profile_pics', profilePics);
 
       navigation.navigate('Home');
+
     } catch (error:any) {
       Alert.alert('Error', error.message);
     }

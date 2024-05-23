@@ -49,6 +49,7 @@ export default function SignUp() {
       };
 
       await firestore().collection('users').doc(userId).set(userData);
+      
       await AsyncStorage.setItem('userData', JSON.stringify(userData));
       await AsyncStorage.setItem('userId', userId);
 

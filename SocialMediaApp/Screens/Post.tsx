@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary, ImageLibraryOptions, CameraOptions } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import tw from 'twrnc';
@@ -16,24 +16,26 @@ export default function Post() {
   const [caption, setCaption] = useState<string>('');
 
   const openCamera = () => {
-    launchCamera({ mediaType: 'photo' }, (response: any) => {
+    const options: CameraOptions = { mediaType: 'photo' };
+    launchCamera(options, (response) => {
       if (response.didCancel) {
         console.log('User cancelled camera picker');
       } else if (response.errorCode) {
-        console.log('Camera Error: ', response.errorMessage);
-      } else {
+        console.error('Camera Error: ', response.errorMessage);
+      } else if (response.assets && response.assets[0].uri) {
         setImageUri(response.assets[0].uri);
       }
     });
   };
 
   const openGallery = () => {
-    launchImageLibrary({ mediaType: 'photo' }, (response: any) => {
+    const options: ImageLibraryOptions = { mediaType: 'photo' };
+    launchImageLibrary(options, (response) => {
       if (response.didCancel) {
         console.log('User cancelled gallery picker');
       } else if (response.errorCode) {
-        console.log('Gallery Error: ', response.errorMessage);
-      } else {
+        console.error('Gallery Error: ', response.errorMessage);
+      } else if (response.assets && response.assets[0].uri) {
         setImageUri(response.assets[0].uri);
       }
     });
@@ -55,30 +57,32 @@ export default function Post() {
       const fileName = imageUri.substring(imageUri.lastIndexOf('/') + 1);
       const reference = storage().ref(`/images/${fileName}`);
       await reference.putFile(imageUri);
-      
+
       const imageUrl = await reference.getDownloadURL();
+
       const userId = await AsyncStorage.getItem('userId');
       const userDataString = await AsyncStorage.getItem('userData');
       const userData = userDataString ? JSON.parse(userDataString) : {};
 
       const newPost = {
         displayName: userData.displayName || currentUser.displayName,
+        userImg: userData.userImg || currentUser.photoURL,
         email: currentUser.email,
         caption,
         imageUrl,
         createdAt: firestore.FieldValue.serverTimestamp(),
         postId: uuid.v4(),
-        userId: userId,
+        userId,
         likes: [],
         comments: [],
       };
 
-      // Save post to Firestore
+     
       await firestore().collection('posts').doc(newPost.postId).set(newPost);
-
-      // Optionally save post to AsyncStorage
+      
       const storedPostsString = await AsyncStorage.getItem('userPosts');
       const storedPosts = storedPostsString ? JSON.parse(storedPostsString) : [];
+
       storedPosts.push(newPost);
       await AsyncStorage.setItem('userPosts', JSON.stringify(storedPosts));
 
