@@ -118,9 +118,8 @@ import firestore from '@react-native-firebase/firestore';
 export default function Comments() {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
-  const [userId, setUserId] = useState<any>('');
-  const [userName, setUserName] = useState<any>('');
-  const [profilePics, setProfilePics] = useState<any>('');
+  const [userId, setUserId] = useState('');
+  const [userData, setUserData] = useState(null);
   const route = useRoute();
   const { postId } = route.params;
 
@@ -128,12 +127,11 @@ export default function Comments() {
     const fetchUserData = async () => {
       try {
         const id = await AsyncStorage.getItem('userId');
-        const name = await AsyncStorage.getItem('userName');
-        const profilePics = await AsyncStorage.getItem('profile_pics');
-        if (id || name || profilePics) {
+        const getUserData = await AsyncStorage.getItem('userData');
+        
+        if (id && getUserData) {
           setUserId(id);
-          setUserName(name);
-          setProfilePics(profilePics);
+          setUserData(JSON.parse(getUserData)); // Parse JSON string to object
         }
       } catch (error) {
         console.error('Error fetching user data: ', error);
@@ -159,19 +157,19 @@ export default function Comments() {
   }, [postId]);
 
   const handleSendComment = async () => {
-    if (comment.trim()) {
-      const newComment = {
+    if (comment.trim() && userData) {
+      const newComment:any = {
         userId,
-        userName,
-        userImg: { uri: profilePics },
+        userName: userData.displayName, 
+        userImg: userData.userImg ? { uri: userData.userImg } : null, 
         text: comment.trim(),
         timestamp: new Date(),
       };
-      const updatedComments = [...comments, newComment];
+      const updatedComments:any = [...comments, newComment];
 
       try {
         await firestore().collection('posts').doc(postId).update({ comments: updatedComments });
-        setComments(updatedComments, newComment);
+        setComments(updatedComments);
         setComment('');
       } catch (error) {
         console.error('Error updating comments: ', error);
@@ -189,7 +187,7 @@ export default function Comments() {
 
       <ScrollView style={tw`m-2 flex-1`}>
         {comments.map((c:any, index:any) => (
-          <View key={index} style={tw`flex flex-row items-center mb-4`}>
+          <View key={index} style={tw`flex flex-row items-center`}>
             <View style={tw`mr-3`}>
               {c.userImg?.uri ? (
                 <Image
@@ -199,7 +197,7 @@ export default function Comments() {
               ) : (
                 <Image
                   source={require('../images/Person.png')}
-                  style={tw`rounded-full w-[30px] h-[30px]`}
+                  style={tw`rounded-full w-[40px] h-[40px]`}
                 />
               )}
             </View>
