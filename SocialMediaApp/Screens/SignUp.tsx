@@ -14,20 +14,23 @@ import auth from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import uuid from 'react-native-uuid';
+import LoaderKit from 'react-native-loader-kit';
 
 export default function SignUp() {
-  const navigation = useNavigation();
+  const navigation: any = useNavigation();
   const [displayName, setDisplayName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [userImg, setUserImg] = useState<any>(null);
+  const [loading, setLoading] = useState<any>(false);
 
   const handleSignUp = async () => {
     if (!email || !password || !displayName) {
       Alert.alert('Please fill in all fields');
       return;
     }
+
+    setLoading(true);
 
     try {
       const res = await auth().createUserWithEmailAndPassword(email, password);
@@ -49,7 +52,7 @@ export default function SignUp() {
       };
 
       await firestore().collection('users').doc(userId).set(userData);
-      
+
       await AsyncStorage.setItem('userData', JSON.stringify(userData));
       await AsyncStorage.setItem('userId', userId);
 
@@ -64,6 +67,8 @@ export default function SignUp() {
       } else {
         Alert.alert(error.message);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -162,6 +167,16 @@ export default function SignUp() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {loading && (
+        <View style={tw`absolute inset-0 flex justify-center items-center bg-black bg-opacity-50`}>
+          <LoaderKit
+            style={{ width: 100, height: 100 }}
+            name={'BallClipRotatePulse'} 
+            color={'#3A6A75'} 
+          />
+        </View>
+      )}
     </View>
   );
 }
